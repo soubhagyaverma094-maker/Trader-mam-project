@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>4 Chatbots — Pattern to Telegram, Live</title>
+<style>
+  :root{
+    --bg:#0B0F0D; --panel:#121A15; --panel2:#16201A; --line:#243128;
+    --ink:#DCEBDF; --sub:#7FA08C; --up:#39D98A; --down:#FF6B6B; --amber:#F5B94D; --tg:#2AABEE;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){ --bg:#EEF3EE; --panel:#FFFFFF; --panel2:#F3F7F3; --line:#D7E2DA; --ink:#16221A; --sub:#5A7768; }
+  }
+  :root[data-theme="light"]{ --bg:#EEF3EE; --panel:#FFFFFF; --panel2:#F3F7F3; --line:#D7E2DA; --ink:#16221A; --sub:#5A7768; }
+  html{ height:100%; scroll-padding-top:env(safe-area-inset-top,0px); }
+  *{ box-sizing:border-box; }
+  body{ height:100%; margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,'Inter',Segoe UI,sans-serif; display:flex; justify-content:center; padding:16px; }
+  .app{ width:100%; max-width:480px; }
+  .bots{ display:flex; gap:6px; margin-bottom:8px; }
+  .bot-btn{ flex:1; font-size:16px; padding:8px 2px; border-radius:9px; border:1px solid var(--line); background:var(--panel); color:var(--sub); text-align:center; }
+  .bot-btn.on{ background:var(--amber); color:#241a00; border-color:var(--amber); }
+  .botname{ text-align:center; font-size:12px; color:var(--sub); margin-bottom:10px; }
+  .steps{ display:flex; gap:6px; margin-bottom:14px; }
+  .step-btn{ flex:1; font-size:10.5px; padding:8px 3px; border-radius:7px; border:1px solid var(--line); background:var(--panel); color:var(--sub); text-align:center; }
+  .step-btn.on{ background:var(--tg); color:#fff; border-color:var(--tg); }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; animation:fade .3s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .eyebrow{ font-size:12px; color:var(--sub); margin-bottom:2px; }
+  h2{ margin:0 0 10px; font-size:16.5px; }
+  .sym-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .sym{ font-weight:700; font-size:15px; }
+  .price{ font-family:ui-monospace,monospace; font-size:14px; color:var(--up); }
+  svg{ width:100%; display:block; }
+  .chartbox{ background:var(--panel2); border-radius:10px; padding:8px; }
+  .flag{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:7px 10px; border-radius:8px; background:rgba(57,217,138,.12); border:1px solid var(--up); color:var(--up); font-size:12.5px; font-weight:600; }
+  .flag.warn{ background:rgba(255,107,107,.12); border-color:var(--down); color:var(--down); }
+  .check{ display:flex; align-items:center; gap:8px; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px; }
+  .check:first-child{ border-top:none; }
+  .dot{ width:16px; height:16px; border-radius:50%; background:var(--up); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:10px; color:#06251A; }
+  .draft{ margin-top:12px; background:var(--panel2); border:1px dashed var(--line); border-radius:10px; padding:10px; font-family:ui-monospace,monospace; font-size:12px; white-space:pre-wrap; color:var(--sub); }
+  .fdesc{ font-size:11.5px; color:var(--sub); margin-top:5px; line-height:1.4; }
+  .phone{ background:#000; border-radius:34px; padding:10px; box-shadow:0 20px 40px rgba(0,0,0,.4); }
+  .screen{ background:#0E1621; border-radius:24px; overflow:hidden; min-height:400px; position:relative; }
+  .notch{ height:22px; display:flex; align-items:center; justify-content:center; }
+  .notch i{ width:60px; height:5px; background:#1c2733; border-radius:3px; }
+  .banner{ margin:8px 10px; background:#17212B; border-radius:12px; padding:10px 12px; display:flex; gap:10px; animation:drop .45s ease; }
+  @keyframes drop{ from{ transform:translateY(-24px); opacity:0;} to{ transform:none; opacity:1;} }
+  .tgicon{ width:34px; height:34px; border-radius:50%; background:var(--tg); flex:0 0 auto; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; }
+  .btitle{ font-size:12.5px; color:#fff; font-weight:700; }
+  .bsub{ font-size:11.5px; color:#8A99A6; margin-top:2px; line-height:1.4; }
+  .chatarea{ padding:14px 12px; }
+  .bubble{ background:#182533; border-radius:12px; padding:10px 12px; font-size:12px; color:#E8EEF3; font-family:ui-monospace,monospace; white-space:pre-wrap; line-height:1.5; max-width:90%; }
+  .time{ font-size:10px; color:#5c6c7a; margin-top:4px; text-align:right; }
+  .grid{ display:grid; gap:10px; }
+  .feature{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .frow{ display:flex; justify-content:space-between; align-items:center; }
+  .ftitle{ font-size:13.5px; font-weight:600; }
+  .switch{ width:34px; height:19px; border-radius:10px; background:var(--up); position:relative; flex:0 0 auto; }
+  .switch i{ position:absolute; top:2px; right:2px; width:15px; height:15px; border-radius:50%; background:#fff; }
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .chip{ font-size:11px; padding:4px 9px; border-radius:20px; border:1px solid var(--line); color:var(--sub); }
+  .chip.on{ background:var(--tg); border-color:var(--tg); color:#fff; }
+  table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:11px; }
+  td,th{ padding:5px 4px; border-top:1px solid var(--line); text-align:left; color:var(--sub); }
+  th{ color:var(--ink); font-weight:600; }
+  .b{ color:var(--up); font-weight:700; }
+  .r{ color:var(--down); font-weight:700; }
+  nav.bottom{ display:flex; justify-content:space-between; margin-top:14px; }
+  button.nav{ font-family:inherit; font-size:13px; background:var(--tg); color:#fff; border:none; padding:9px 14px; border-radius:9px; }
+  button.nav:disabled{ opacity:.3; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bots" id="bots"></div>
+  <div class="botname" id="botname"></div>
+  <div class="steps" id="steps"></div>
+  <div id="stage"></div>
+  <nav class="bottom">
+    <button class="nav" id="prev">◂ back</button>
+    <button class="nav" id="next">next ▸</button>
+  </nav>
+</div>
+
+<script>
+var candleRSI = function(dir){
+  // dir: 'bull' regular, 'hiddenBear'
+  if(dir==='bull'){
+    return {
+      candles:[[20,30,55,'u'],[40,20,48,'u'],[60,35,70,'d'],[80,55,88,'d'],[100,70,98,'d'],[120,80,100,'u'],[140,72,92,'u'],[160,82,112,'d'],[180,98,122,'d'],[200,90,108,'u'],[220,80,98,'u']],
+      trendPrice:'M95 96 L215 106', trendLabel:'lower low →', trendLabelX:90, trendLabelY:122,
+      rsi:[[20,36],[40,30],[60,26],[80,22],[100,20],[120,26],[140,30],[160,24],[180,18],[200,22],[220,10]],
+      trendRSI:'M97 20 L215 11', rsiLabel:'higher low', rsiLabelX:140, rsiLabelY:8
+    };
+  }
+  return {
+    candles:[[20,90,108,'d'],[40,80,98,'d'],[60,70,92,'u'],[80,55,80,'u'],[100,40,66,'u'],[120,50,74,'d'],[140,58,84,'d'],[160,42,64,'u'],[180,30,52,'u'],[200,40,62,'d'],[220,50,72,'d']],
+    trendPrice:'M97 46 L215 62', trendLabel:'lower high →', trendLabelX:90, trendLabelY:36,
+    rsi:[[20,30],[40,24],[60,16],[80,12],[100,20],[120,14],[140,10],[160,18],[180,6],[200,14],[220,4]],
+    trendRSI:'M97 12 L215 4', rsiLabel:'higher high', rsiLabelX:140, rsiLabelY:26
+  };
+};
+function svgCandles(d){
+  var g=d.candles.map(function(c){var col=c[3]==='u'?'#39D98A':'#FF6B6B';return '<line x1="'+c[0]+'" y1="'+c[1]+'" x2="'+c[0]+'" y2="'+c[2]+'" stroke="'+col+'" stroke-width="3"/>';}).join('');
+  return '<svg viewBox="0 0 300 130">'+g+
+    '<path d="'+d.trendPrice+'" stroke="#F5B94D" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>'+
+    '<text x="'+d.trendLabelX+'" y="'+d.trendLabelY+'" fill="#7FA08C" font-size="8" font-family="ui-monospace,monospace">'+d.trendLabel+'</text></svg>'+
+    '<svg viewBox="0 0 300 46" style="margin-top:2px"><text x="4" y="10" fill="#7FA08C" font-size="8" font-family="ui-monospace,monospace">RSI(14)</text>'+
+    '<path d="M0 40 H300" stroke="#243128" stroke-width="1"/>'+
+    '<path d="M'+d.rsi.map(function(p){return p[0]+' '+p[1];}).join(' L ')+'" fill="none" stroke="#56C2FF" stroke-width="2"/>'+
+    '<path d="'+d.trendRSI+'" stroke="#F5B94D" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>'+
+    '<text x="'+d.rsiLabelX+'" y="'+d.rsiLabelY+'" fill="#7FA08C" font-size="8" font-family="ui-monospace,monospace">'+d.rsiLabel+'</text></svg>';
+}
+function svgWedge(){
+  return '<svg viewBox="0 0 300 120">'+
+    '<polyline points="10,100 40,60 70,75 100,35 130,55 160,25 190,42 220,18 250,32" fill="none" stroke="#39D98A" stroke-width="2"/>'+
+    '<path d="M10 100 L250 32" stroke="#F5B94D" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>'+
+    '<path d="M40 60 L220 18" stroke="#F5B94D" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>'+
+    '<text x="80" y="110" fill="#7FA08C" font-size="9" font-family="ui-monospace,monospace">rising, narrowing range</text></svg>';
+}
+function svgElliott(){
+  return '<svg viewBox="0 0 300 120">'+
+    '<polyline points="10,100 70,25 130,68" fill="none" stroke="#56C2FF" stroke-width="2"/>'+
+    '<text x="30" y="55" fill="#39D98A" font-size="9" font-family="ui-monospace,monospace">1</text>'+
+    '<text x="95" y="60" fill="#F5B94D" font-size="9" font-family="ui-monospace,monospace">2</text>'+
+    '<rect x="95" y="55" width="55" height="18" fill="none" stroke="#F5B94D" stroke-width="1" stroke-dasharray="2 2"/>'+
+    '<text x="98" y="90" fill="#7FA08C" font-size="8" font-family="ui-monospace,monospace">61.8% zone</text>'+
+    '<polyline points="130,68 300,-10" fill="none" stroke="#39D98A" stroke-width="1.4" stroke-dasharray="3 3" opacity=".5" transform="translate(0,20)"/>'+
+    '<text x="200" y="45" fill="#7FA08C" font-size="8" font-family="ui-monospace,monospace">3 (expected)</text></svg>';
+}
+
+var BOTS = [
+{
+  icon:'①', name:'Divergence Watch · Daily / Weekly',
+  scenes:[
+    { eyebrow:'Chatbot 1 · live chart · Weekly candle just closed', sym:'RELIANCE', price:'₹2,412.30',
+      chart:svgCandles(candleRSI('bull')),
+      flag:'✓ Bullish regular RSI divergence — price lower low, RSI higher low', warn:false,
+      vol:'Volume into the low: below 20-week average, ticking up on this candle.' },
+    { eyebrow:'Signal engine · runs once, right after candle close', title:"Confirming before it sends anything",
+      checks:['Weekly candle fully closed','Swing low confirmed against prior swing low','RSI compared at both lows — divergence holds','Volume tagged: low into the base, rising now','Not a duplicate of an already-sent alert'],
+      draft:'📗 CHATBOT 1 — DIVERGENCE\nRELIANCE · Weekly close\nBullish regular divergence confirmed\nRSI 34.2 (rising) · Price ₹2,412.30\nVolume: below 20W avg, upticking' },
+    { btitle:'Divergence Watch', bsub:'RELIANCE · Weekly · Bullish regular divergence confirmed. RSI 34.2, rising. Volume upticking.',
+      bubble:'📗 CHATBOT 1 — DIVERGENCE\nRELIANCE · Weekly close\nBullish regular divergence confirmed\nRSI 34.2 (rising) · Price ₹2,412.30\nVolume: below 20W avg, upticking' },
+    { eyebrow:'Dashboard · Divergence Watch section', title:"What's editable here, and how it changes the bot",
+      features:[
+        {t:'Monitoring', sw:true, d:'Master on/off. Off means the engine still watches candles but never sends to Telegram.'},
+        {t:'Timeframes running', chips:['Daily','Weekly'], d:'Both selected — Daily and Weekly are checked independently, at once. Turning one off stops only that timeframe.'},
+        {t:'Pattern types', chips:['Regular divergence','Hidden divergence'], d:'Either can run alone if you only want reversal or only continuation signals.'},
+        {t:'Watchlist', chips:['RELIANCE','TCS','HDFCBANK','+ add symbol'], d:'Add or remove symbols; the bot rescans the updated list from the next candle close.'}
+      ],
+      log:[['Fri 15:30','RELIANCE','W','Bull div','b'],['Thu 15:30','TCS','D','Hidden bear','r']] }
+  ]
+},
+{
+  icon:'②', name:'F&O 200 Watch · 30m / 1H',
+  scenes:[
+    { eyebrow:'Chatbot 2 · live chart · 1H candle just closed', sym:'TATAMOTORS', price:'₹941.15',
+      chart:svgCandles(candleRSI('hiddenBear')),
+      flag:'⚠ Hidden bearish divergence — price lower high, RSI higher high', warn:true,
+      vol:'Volume into the bounce: rising, now fading — the bounce is losing steam.' },
+    { eyebrow:'Signal engine · runs once, right after candle close', title:'Confirming before it sends anything',
+      checks:['1-hour candle fully closed','Swing high confirmed against prior swing high','RSI compared at both highs — hidden divergence holds','TATAMOTORS present in the F&O 200 list','Volume tagged: rising into the high, fading now','Not a duplicate of an already-sent alert'],
+      draft:'📙 CHATBOT 2 — F&O 200\nTATAMOTORS · 1H close\nHidden bearish divergence confirmed\nRSI 61.4 (falling) · Price ₹941.15\nVolume: fading off the bounce' },
+    { btitle:'F&O 200 Watch', bsub:'TATAMOTORS · 1H · Hidden bearish divergence confirmed. RSI 61.4, falling. Volume fading.',
+      bubble:'📙 CHATBOT 2 — F&O 200\nTATAMOTORS · 1H close\nHidden bearish divergence confirmed\nRSI 61.4 (falling) · Price ₹941.15\nVolume: fading off the bounce' },
+    { eyebrow:'Dashboard · F&O 200 Watch section', title:"What's editable here, and how it changes the bot",
+      features:[
+        {t:'Monitoring', sw:true, d:'Master on/off for this bot only — Bots 1, 3, 4 are unaffected.'},
+        {t:'Timeframes running', chips:['30 min','1 Hour'], d:'Both selected by default; this bot generates far more alerts, so timeframes can be split to reduce noise.'},
+        {t:'Pattern types', chips:['Regular divergence','Hidden divergence'], d:'Same engine as Bot 1, applied to the wider, faster-moving F&O universe.'},
+        {t:'F&O universe', chips:['205 symbols loaded','edit list'], d:'The full F&O watchlist is editable — add or drop contracts without touching code.'},
+        {t:'Volume filter', chips:['Hide below-average signals'], d:'Optional filter: suppress alerts where volume is below the 20-bar average, to cut low-conviction noise.'}
+      ],
+      log:[['15:00','TATAMOTORS','1H','Hidden bear','r'],['14:30','BANKNIFTY','30m','Bull div','b']] }
+  ]
+},
+{
+  icon:'③', name:'Pattern Watch · Weekly',
+  scenes:[
+    { eyebrow:'Chatbot 3 · live chart · Weekly candle just closed · library: Pennant, Flag, Rising Wedge, Falling Wedge, Expanding Triangle, Cup & Handle, Ascending Triangle, Descending Triangle', sym:'INFY', price:'₹1,842.60',
+      chart:svgWedge(),
+      flag:'⚠ Rising wedge forming — bearish bias', warn:true,
+      vol:'Volume through the advance: steadily fading — classic wedge weakness.' },
+    { eyebrow:'Signal engine · runs once, right after candle close', title:'Confirming before it sends anything',
+      checks:['Weekly candle fully closed','Trendlines fit to swing highs and swing lows','Both lines converging within tolerance angle','At least 2 touches on each rail','Volume tagged: fading through the rise','Not a duplicate of an already-sent alert'],
+      draft:'📕 CHATBOT 3 — PATTERN\nINFY · Weekly\nRising wedge identified (bearish bias)\nTouches: 3 upper rail, 2 lower rail\nVolume: fading through the rise\nWatch for a breakdown to confirm' },
+    { btitle:'Pattern Watch', bsub:'INFY · Weekly · Rising wedge identified, bearish bias. Volume fading through the rise.',
+      bubble:'📕 CHATBOT 3 — PATTERN\nINFY · Weekly\nRising wedge identified (bearish bias)\nTouches: 3 upper rail, 2 lower rail\nVolume: fading through the rise\nWatch for a breakdown to confirm' },
+    { eyebrow:'Dashboard · Pattern Watch section', title:"What's editable here, and how it changes the bot",
+      features:[
+        {t:'Monitoring', sw:true, d:'Master on/off for this bot only.'},
+        {t:'Timeframe', chips:['Weekly'], d:'Fixed to Weekly per your spec; can be opened to more timeframes later if you want it.'},
+        {t:'Pattern library', chips:['Pennant','Flag','Rising Wedge','Falling Wedge','Expanding Triangle','Cup & Handle','Ascending Triangle','Descending Triangle','+ add pattern'], d:'Each pattern can be switched off on its own. New shapes get added here without touching the engine.'},
+        {t:'Touch sensitivity', chips:['min. 2 touches per rail'], d:'How strict the trendline fit has to be before a channel or wedge counts as confirmed.'},
+        {t:'Watchlist', chips:['INFY','WIPRO','+ add symbol'], d:'Editable list, same pattern as the other bots.'}
+      ],
+      log:[['Fri 15:30','INFY','W','Rising wedge','r'],['prior Fri','WIPRO','W','Falling wedge','b']] }
+  ]
+},
+{
+  icon:'④', name:'Elliott Wave · end of Wave 2',
+  scenes:[
+    { eyebrow:'Chatbot 4 · live chart · Weekly candle just closed', sym:'TATASTEEL', price:'₹166.40',
+      chart:svgElliott(),
+      flag:'✓ Falling wedge on the chart + possible end of Wave 2 — both conditions met', warn:false,
+      vol:'Volume through the pullback: contracting for 6 weeks, first uptick this week.' },
+    { eyebrow:'Signal engine · runs once, right after the weekly close', title:'Three conditions all have to line up',
+      checks:['Weekly candle fully closed','A library pattern (here: Falling Wedge) is confirmed on the same chart','Wave 1 impulse measured from a confirmed swing low','Retracement has not exceeded 100% of Wave 1','Retracement measured at 64.8% — inside the 50–78.6% zone, marking Wave 2 as likely done','Volume contracted through the pullback, ticking up now','Confidence score computed: 3 of 5','Not a duplicate of an already-sent alert'],
+      draft:'📘 CHATBOT 4 — ELLIOTT WAVE\nTATASTEEL · Weekly close\nFalling wedge + Wave 2 completion, both confirmed\nRetrace: 64.8% of Wave 1 (golden zone)\nVolume: contracting 6 weeks, +1 tick this week\nConfidence: 3 of 5 — Wave 3 expected next' },
+    { btitle:'Elliott Wave', bsub:'TATASTEEL · Weekly · Falling wedge + Wave 2 completion, both confirmed. Confidence 3 of 5.',
+      bubble:'📘 CHATBOT 4 — ELLIOTT WAVE\nTATASTEEL · Weekly close\nFalling wedge + Wave 2 completion, both confirmed\nRetrace: 64.8% of Wave 1 (golden zone)\nVolume: contracting 6 weeks, +1 tick this week\nConfidence: 3 of 5 — Wave 3 expected next' },
+    { eyebrow:'Dashboard · Elliott Wave section', title:"What's editable here, and how it changes the bot",
+      features:[
+        {t:'Monitoring', sw:true, d:'Master on/off for this bot only.'},
+        {t:'Timeframe', chips:['Weekly'], d:'Fixed to the weekly close, so it only ever fires once per stock per week.'},
+        {t:'Requires pattern confluence', sw:true, d:'When on (default), an alert needs both a library pattern from Bot 3\'s list AND a confirmed Wave 2 end in the same week. Turn off to alert on wave completion alone.'},
+        {t:'Confidence threshold', chips:['alert at 2 of 5 or higher'], d:'Raise it to only hear about the strongest confluences; lower it to see earlier, weaker reads.'},
+        {t:'Watchlist', chips:['TATASTEEL','+ add symbol'], d:'This bot is more compute-heavy per stock, so the list tends to stay shorter and more deliberate.'}
+      ],
+      log:[['Fri 15:30','TATASTEEL','W','Wedge+Wave2 · 3/5','b']] }
+  ]
+}
+];
+
+var bi=0, si=0;
+function renderBots(){
+  document.getElementById('bots').innerHTML = BOTS.map(function(b,idx){
+    return '<button class="bot-btn'+(idx===bi?' on':'')+'" data-b="'+idx+'">'+b.icon+'</button>';
+  }).join('');
+  document.getElementById('botname').textContent = BOTS[bi].name;
+}
+function renderSteps(){
+  var labels=['① pattern forms','② signal built','③ Telegram','④ dashboard'];
+  document.getElementById('steps').innerHTML = labels.map(function(l,idx){
+    return '<button class="step-btn'+(idx===si?' on':'')+'" data-s="'+idx+'">'+l+'</button>';
+  }).join('');
+}
+function renderStage(){
+  var bot=BOTS[bi], s=bot.scenes[si], html='';
+  if(si===0){
+    html='<div class="card"><div class="eyebrow">'+s.eyebrow+'</div><div class="sym-row"><span class="sym">'+s.sym+'</span><span class="price">'+s.price+'</span></div>'+
+      '<div class="chartbox">'+s.chart+'</div>'+
+      '<div class="flag'+(s.warn?' warn':'')+'">'+s.flag+'</div>'+
+      '<div class="fdesc" style="margin-top:8px">'+s.vol+'</div></div>';
+  } else if(si===1){
+    html='<div class="card"><div class="eyebrow">'+s.eyebrow+'</div><h2>'+s.title+'</h2>'+
+      s.checks.map(function(c){return '<div class="check"><span class="dot">✓</span> '+c+'</div>';}).join('')+
+      '<div class="draft">'+s.draft+'</div></div>';
+  } else if(si===2){
+    html='<div class="card"><div class="eyebrow" style="text-align:center;margin-bottom:8px">What the trader sees, seconds later</div>'+
+      '<div class="phone"><div class="screen"><div class="notch"><i></i></div>'+
+      '<div class="banner"><div class="tgicon">✈</div><div><div class="btitle">'+s.btitle+'</div><div class="bsub">'+s.bsub+'</div></div></div>'+
+      '<div class="chatarea"><div class="bubble">'+s.bubble+'</div><div class="time">just now</div></div>'+
+      '</div></div></div>';
+  } else {
+    html='<div class="card"><div class="eyebrow">'+s.eyebrow+'</div><h2>'+s.title+'</h2><div class="grid">'+
+      s.features.map(function(f){
+        var head = f.sw ? '<div class="frow"><span class="ftitle">'+f.t+'</span><div class="switch"><i></i></div></div>'
+                         : '<div class="ftitle">'+f.t+'</div>';
+        var chips = f.chips ? '<div class="chips">'+f.chips.map(function(c){return '<span class="chip on">'+c+'</span>';}).join('')+'</div>' : '';
+        return '<div class="feature">'+head+chips+'<div class="fdesc">'+f.d+'</div></div>';
+      }).join('')+
+      '<div class="feature"><div class="ftitle">Alert log</div><table><tr><th>Time</th><th>Symbol</th><th>TF</th><th>Type</th></tr>'+
+      s.log.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td class="'+r[4]+'">'+r[3]+'</td></tr>';}).join('')+
+      '</table></div></div></div>';
+  }
+  document.getElementById('stage').innerHTML = html;
+  document.getElementById('prev').disabled = (bi===0 && si===0);
+  document.getElementById('next').disabled = (bi===BOTS.length-1 && si===3);
+}
+function renderAll(){ renderBots(); renderSteps(); renderStage(); }
+document.getElementById('bots').addEventListener('click', function(e){
+  var b=e.target.closest('.bot-btn'); if(!b) return; bi=+b.dataset.b; si=0; renderAll();
+});
+document.getElementById('steps').addEventListener('click', function(e){
+  var b=e.target.closest('.step-btn'); if(!b) return; si=+b.dataset.s; renderAll();
+});
+document.getElementById('prev').addEventListener('click', function(){
+  if(si>0){ si--; } else if(bi>0){ bi--; si=3; } renderAll();
+});
+document.getElementById('next').addEventListener('click', function(){
+  if(si<3){ si++; } else if(bi<BOTS.length-1){ bi++; si=0; } renderAll();
+});
+renderAll();
+</script>
+</body>
+</html>
